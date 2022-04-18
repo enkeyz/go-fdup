@@ -1,5 +1,5 @@
 # Binaries for programs and plugins
-bin/*
+bin/
 *.exe
 *.exe~
 *.dll
@@ -17,3 +17,6 @@ bin/*
 
 # .vscode
 .vscode/*.log
+
+# test data
+testdata/
