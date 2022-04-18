@@ -10,9 +10,11 @@ import (
 )
 
 func TestCrc32Hash(t *testing.T) {
+	data := "Hello, World"
+
 	t.Run("calculate hash of bytes.Buffer", func(t *testing.T) {
 		buff := &bytes.Buffer{}
-		fmt.Fprint(buff, "Hello, World")
+		fmt.Fprint(buff, data)
 
 		got, _ := Crc32Hash(buff)
 		var expected uint32 = 1080205678
@@ -33,15 +35,13 @@ func TestCrc32Hash(t *testing.T) {
 	})
 
 	t.Run("hashing contents of a file", func(t *testing.T) {
-		data := []byte("Hello, World")
 		tmpFile, err := ioutil.TempFile("", "testfile")
 		if err != nil {
 			t.Fatal("error creating temp file")
 		}
 		defer os.Remove(tmpFile.Name())
-		if _, err := tmpFile.Write(data); err != nil {
-			t.Fatal("error writing into temp file")
-		}
+
+		fmt.Fprint(tmpFile, data)
 		tmpFile.Seek(0, io.SeekStart)
 
 		got, _ := Crc32Hash(tmpFile)
