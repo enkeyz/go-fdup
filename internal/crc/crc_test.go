@@ -3,10 +3,8 @@ package crc
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
 	"testing"
+	"testing/fstest"
 )
 
 func TestCrc32Hash(t *testing.T) {
@@ -36,24 +34,22 @@ func TestCrc32Hash(t *testing.T) {
 	})
 
 	t.Run("hashing contents of a file", func(t *testing.T) {
-		tmpFile, err := ioutil.TempFile("", "testfile")
-		if err != nil {
-			t.Fatal("error creating temp file")
+		fs := fstest.MapFS{
+			"hello.txt": {
+				Data: []byte(data),
+			},
 		}
-		defer os.Remove(tmpFile.Name())
 
-		fmt.Fprint(tmpFile, data)
-		tmpFile.Seek(0, io.SeekStart)
+		testFile, err := fs.Open("hello.txt")
+		if err != nil {
+			t.Fatal("error opening file")
+		}
 
-		got, _ := hasher.Hash(tmpFile)
+		got, _ := hasher.Hash(testFile)
 		var expected uint32 = 1080205678
 
 		if got != expected {
 			t.Errorf("got %d, but expected %d", got, expected)
-		}
-
-		if err := tmpFile.Close(); err != nil {
-			t.Fatal("error closing temp file")
 		}
 	})
 }
