@@ -11,12 +11,13 @@ import (
 
 func TestCrc32Hash(t *testing.T) {
 	data := "Hello, World"
+	hasher := NewCrc32Hasher()
 
 	t.Run("calculate hash of bytes.Buffer", func(t *testing.T) {
 		buff := &bytes.Buffer{}
 		fmt.Fprint(buff, data)
 
-		got, _ := Crc32Hash(buff)
+		got, _ := hasher.Hash(buff)
 		var expected uint32 = 1080205678
 
 		if got != expected {
@@ -27,7 +28,7 @@ func TestCrc32Hash(t *testing.T) {
 	t.Run("hashing of an empty sized bytes.Buffer", func(t *testing.T) {
 		buff := &bytes.Buffer{}
 
-		_, err := Crc32Hash(buff)
+		_, err := hasher.Hash(buff)
 
 		if err == nil {
 			t.Errorf("expected error, got nil")
@@ -44,7 +45,7 @@ func TestCrc32Hash(t *testing.T) {
 		fmt.Fprint(tmpFile, data)
 		tmpFile.Seek(0, io.SeekStart)
 
-		got, _ := Crc32Hash(tmpFile)
+		got, _ := hasher.Hash(tmpFile)
 		var expected uint32 = 1080205678
 
 		if got != expected {
