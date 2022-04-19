@@ -1,7 +1,6 @@
 package fdup
 
 import (
-	"fmt"
 	"io/fs"
 	"log"
 	"path/filepath"
@@ -19,12 +18,14 @@ type HashedFileInfo struct {
 type HashedFileMap map[uint32][]*HashedFileInfo
 
 type Fdup struct {
-	f fs.FS
+	f      fs.FS
+	hasher *hash.Crc32Hasher
 }
 
 func NewFdup(f fs.FS) *Fdup {
 	return &Fdup{
 		f,
+		hash.NewCrc32Hasher(),
 	}
 }
 
@@ -35,7 +36,15 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 		return nil, err
 	}
 
-	hasher := hash.NewCrc32Hasher()
+	fmap, err := fd.search(filePaths)
+	if err != nil {
+		return nil, err
+	}
+
+	return fmap, nil
+}
+
+func (fd *Fdup) search(filePaths []string) (HashedFileMap, error) {
 	fmap := make(map[uint32][]*HashedFileInfo)
 	for _, filePath := range filePaths {
 		file, err := fd.f.Open(filePath)
@@ -44,7 +53,7 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 		}
 		defer file.Close()
 
-		hash, err := hasher.Hash(file)
+		hash, err := fd.hasher.Hash(file)
 		if err != nil {
 			return nil, err
 		}
@@ -58,19 +67,6 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 	}
 
 	return fmap, nil
-}
-
-func (fd *Fdup) PrintDuplicateFiles(hashedFileMap HashedFileMap) {
-	for _, fileInfoSlice := range hashedFileMap {
-		if len(fileInfoSlice) == 1 {
-			continue
-		}
-
-		fmt.Println("Duplicate(s) found!")
-		for _, fileInfo := range fileInfoSlice {
-			fmt.Printf("	hash: %d, file: %s, size: %d bytes\n", fileInfo.Hash, fileInfo.Path, fileInfo.Size)
-		}
-	}
 }
 
 func (fd *Fdup) getAllFiles() ([]string, error) {

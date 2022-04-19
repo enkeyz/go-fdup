@@ -1,8 +1,7 @@
 package hash
 
 import (
-	"bytes"
-	"fmt"
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -11,9 +10,8 @@ func TestCrc32Hash(t *testing.T) {
 	data := "Hello, World"
 	hasher := NewCrc32Hasher()
 
-	t.Run("calculate hash of bytes.Buffer", func(t *testing.T) {
-		buff := &bytes.Buffer{}
-		fmt.Fprint(buff, data)
+	t.Run("calculate hash of string", func(t *testing.T) {
+		buff := strings.NewReader(data)
 
 		got, _ := hasher.Hash(buff)
 		var expected uint32 = 1080205678
@@ -23,8 +21,8 @@ func TestCrc32Hash(t *testing.T) {
 		}
 	})
 
-	t.Run("hashing of an empty sized bytes.Buffer", func(t *testing.T) {
-		buff := &bytes.Buffer{}
+	t.Run("hashing of an empty string", func(t *testing.T) {
+		buff := strings.NewReader("")
 
 		_, err := hasher.Hash(buff)
 

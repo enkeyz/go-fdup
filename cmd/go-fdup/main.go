@@ -21,9 +21,10 @@ func main() {
 	f := os.DirFS(filepath.Join(cwd, *dir))
 	fd := fdup.NewFdup(f)
 
-	filesMap, err := fd.Search()
+	res, err := fd.Search()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fd.PrintDuplicateFiles(filesMap)
+
+	fdup.PrintResult(res)
 }
