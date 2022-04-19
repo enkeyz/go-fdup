@@ -37,6 +37,10 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 		return nil, err
 	}
 
+	if len(filePaths) == 0 {
+		return nil, errors.New("no file found")
+	}
+
 	fmap, err := fd.search(filePaths)
 	if err != nil {
 		return nil, err

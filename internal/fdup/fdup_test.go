@@ -53,4 +53,15 @@ func TestSearch(t *testing.T) {
 			t.Fatalf("expected error, got nil")
 		}
 	})
+
+	t.Run("no files found", func(t *testing.T) {
+		fs := fstest.MapFS{}
+
+		fdup := NewFdup(fs)
+		_, err := fdup.Search()
+
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+	})
 }
