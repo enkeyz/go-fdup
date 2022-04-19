@@ -10,7 +10,7 @@ func PrintResult(hashedFileMap HashedFileMap) {
 
 		fmt.Println("Duplicate(s) found!")
 		for _, fileInfo := range fileInfoSlice {
-			fmt.Printf("	hash: %d, file: %s, size: %d bytes\n", fileInfo.Hash, fileInfo.Path, fileInfo.Size)
+			fmt.Printf("\thash: %d, file: %s, size: %d bytes\n", fileInfo.Hash, fileInfo.Path, fileInfo.Size)
 		}
 	}
 }
