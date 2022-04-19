@@ -18,7 +18,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	f := os.DirFS(filepath.Join(cwd, *dir))
+	dirPath := filepath.Join(cwd, *dir)
+	fi, err := os.Stat(dirPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !fi.IsDir() {
+		log.Fatalf("%s is not a directory", *dir)
+	}
+
+	f := os.DirFS(dirPath)
 	fd := fdup.NewFdup(f)
 
 	res, err := fd.Search()
