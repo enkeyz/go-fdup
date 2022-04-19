@@ -1,4 +1,4 @@
-package crc
+package hash
 
 import (
 	"errors"
