@@ -46,7 +46,7 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 		return nil, err
 	}
 
-	if !fd.checkIfDuplicatesExists(fmap) {
+	if !fd.duplicatesExists(fmap) {
 		return nil, errors.New("no duplicate files found")
 	}
 
@@ -79,7 +79,7 @@ func (fd *Fdup) search(filePaths []string) (HashedFileMap, error) {
 }
 
 // check if there are more then one file with the same hash in the whole map
-func (fd *Fdup) checkIfDuplicatesExists(hashedFileMap HashedFileMap) bool {
+func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 	for _, slice := range hashedFileMap {
 		if len(slice) > 1 {
 			return true
