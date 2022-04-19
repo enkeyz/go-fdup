@@ -1,33 +1,29 @@
 package fdup
 
 import (
-	"reflect"
 	"testing"
 	"testing/fstest"
 )
 
 func TestSearch(t *testing.T) {
 	data := "Hello, World"
+	var hash uint32 = 1080205678
 
-	fs := fstest.MapFS{
-		"hello.txt": {
-			Data: []byte(data),
-		},
-		"subdir/bye.txt": {
-			Data: []byte(data),
-		},
-	}
-	fdup := NewFdup(fs)
+	t.Run("searching for duplicate files", func(t *testing.T) {
+		fs := fstest.MapFS{
+			"hello.txt": {
+				Data: []byte(data),
+			},
+			"subdir/hello_copy.txt": {
+				Data: []byte(data),
+			},
+		}
 
-	got, _ := fdup.Search()
-	expected := HashedFileMap{
-		1080205678: []*HashedFileInfo{
-			{Name: "hello.txt", Path: "hello.txt", Size: int64(len(data)), Hash: 1080205678},
-			{Name: "bye.txt", Path: "subdir/bye.txt", Size: int64(len(data)), Hash: 1080205678},
-		},
-	}
+		fdup := NewFdup(fs)
+		got, _ := fdup.Search()
 
-	if !reflect.DeepEqual(got, expected) {
-		t.Errorf("got %v, but expected %v", got, expected)
-	}
+		if len(got[hash]) != 2 {
+			t.Errorf("got %d files, but expected %d", len(got[hash]), 2)
+		}
+	})
 }
