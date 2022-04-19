@@ -35,4 +35,22 @@ func TestSearch(t *testing.T) {
 			t.Errorf("got %d files, but expected %d", len(got[hash]), 2)
 		}
 	})
+
+	t.Run("no duplicate files found", func(t *testing.T) {
+		fs := fstest.MapFS{
+			"hello.txt": {
+				Data: []byte(data),
+			},
+			filepath.Join("subdir", "hello_copy.txt"): {
+				Data: []byte("Hello! World"),
+			},
+		}
+
+		fdup := NewFdup(fs)
+		_, err := fdup.Search()
+
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+	})
 }
