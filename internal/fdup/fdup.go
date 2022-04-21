@@ -111,7 +111,7 @@ func (fd *Fdup) getAllFilePath() ([]string, error) {
 			return err
 		}
 
-		if d.IsDir() && d.Type() == fs.ModeSymlink {
+		if d.IsDir() || d.Type() == fs.ModeSymlink {
 			return nil
 		}
 
