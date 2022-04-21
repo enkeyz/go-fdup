@@ -3,7 +3,6 @@ package fdup
 import (
 	"errors"
 	"io/fs"
-	"log"
 	"path/filepath"
 
 	"github.com/enkeyz/go-fdup/internal/hash"
@@ -28,7 +27,6 @@ func NewFdup(f fs.FS) *Fdup {
 	}
 }
 
-// TODO only hash files if they're the same size
 func (fd *Fdup) Search() (HashedFileMap, error) {
 	filePaths, err := fd.getAllFilePath()
 	if err != nil {
@@ -109,7 +107,7 @@ func (fd *Fdup) getAllFilePath() ([]string, error) {
 
 	fs.WalkDir(fd.f, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			log.Fatal(err)
+			return nil
 		}
 
 		if d.IsDir() {
