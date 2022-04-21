@@ -1,16 +1,19 @@
 package fdup
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
-func PrintResult(hashedFileMap HashedFileMap) {
-	for _, fileInfoSlice := range hashedFileMap {
+func PrintResult(w io.Writer, hashedFileMap HashedFileMap) {
+	for hash, fileInfoSlice := range hashedFileMap {
 		if len(fileInfoSlice) == 1 {
 			continue
 		}
 
-		fmt.Println("Duplicate(s) found!")
+		fmt.Fprintf(w, "Hash: %d\n", hash)
 		for _, fileInfo := range fileInfoSlice {
-			fmt.Printf("\thash: %d, file: %s\n", fileInfo.Hash, fileInfo.Path)
+			fmt.Fprintf(w, "\tfile: %s\n", fileInfo.Path)
 		}
 	}
 }

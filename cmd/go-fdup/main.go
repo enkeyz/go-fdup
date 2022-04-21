@@ -35,5 +35,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fdup.PrintResult(res)
+	fdup.PrintResult(os.Stdout, res)
 }
