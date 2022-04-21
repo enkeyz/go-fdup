@@ -3,7 +3,6 @@ package fdup
 import (
 	"errors"
 	"io/fs"
-	"path/filepath"
 
 	"github.com/enkeyz/go-fdup/internal/hash"
 )
@@ -104,7 +103,7 @@ func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 
 // get all file paths in the given directory by the user
 func (fd *Fdup) getAllFilePath() ([]string, error) {
-	files := []string{}
+	files := make([]string, 0)
 
 	err := fs.WalkDir(fd.f, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -115,10 +114,13 @@ func (fd *Fdup) getAllFilePath() ([]string, error) {
 			return nil
 		}
 
-		files = append(files, filepath.Join(".", path))
+		files = append(files, path)
 
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return files, err
 }
