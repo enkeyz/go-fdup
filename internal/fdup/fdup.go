@@ -7,12 +7,13 @@ import (
 	"github.com/enkeyz/go-fdup/internal/hash"
 )
 
-type HashedFileInfo struct {
-	Path string
-	Hash uint32
+type FileInfo struct {
+	Name     string
+	FullPath string
+	Size     int64
 }
 
-type HashedFileMap map[uint32][]HashedFileInfo
+type HashedFileMap map[uint32][]FileInfo
 
 type Fdup struct {
 	f      fs.FS
@@ -27,16 +28,16 @@ func NewFdup(f fs.FS) *Fdup {
 }
 
 func (fd *Fdup) Search() (HashedFileMap, error) {
-	filePaths, err := fd.getAllFilePath()
+	fileInfos, err := fd.getAllFileInfo()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(filePaths) == 0 {
+	if len(fileInfos) == 0 {
 		return nil, errors.New("no file found")
 	}
 
-	fmap, err := fd.search(filePaths)
+	fmap, err := fd.search(fileInfos)
 	if err != nil {
 		return nil, err
 	}
@@ -48,31 +49,20 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 	return fmap, nil
 }
 
-func (fd *Fdup) search(filePaths []string) (HashedFileMap, error) {
-	fsmap := make(map[int64][]string)
-	for _, filePath := range filePaths {
-		file, err := fd.f.Open(filePath)
-		if err != nil {
-			return nil, err
-		}
-
-		fInfo, err := file.Stat()
-		if err != nil {
-			return nil, err
-		}
-
-		fsmap[fInfo.Size()] = append(fsmap[fInfo.Size()], filePath)
-		file.Close()
+func (fd *Fdup) search(fileInfos []FileInfo) (HashedFileMap, error) {
+	fsmap := make(map[int64][]FileInfo)
+	for _, fileInfo := range fileInfos {
+		fsmap[fileInfo.Size] = append(fsmap[fileInfo.Size], fileInfo)
 	}
 
-	hfmap := make(map[uint32][]HashedFileInfo)
-	for _, files := range fsmap {
-		if len(files) <= 1 {
+	hfmap := make(map[uint32][]FileInfo)
+	for _, fileInfos := range fsmap {
+		if len(fileInfos) <= 1 {
 			continue
 		}
 
-		for _, filePath := range files {
-			file, err := fd.f.Open(filePath)
+		for _, fileInfo := range fileInfos {
+			file, err := fd.f.Open(fileInfo.FullPath)
 			if err != nil {
 				return nil, err
 			}
@@ -82,7 +72,7 @@ func (fd *Fdup) search(filePaths []string) (HashedFileMap, error) {
 				continue
 			}
 
-			hfmap[hash] = append(hfmap[hash], HashedFileInfo{Path: filePath, Hash: hash})
+			hfmap[hash] = append(hfmap[hash], fileInfo)
 			file.Close()
 		}
 	}
@@ -102,8 +92,8 @@ func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 }
 
 // get all file paths in the given directory by the user
-func (fd *Fdup) getAllFilePath() ([]string, error) {
-	files := make([]string, 0)
+func (fd *Fdup) getAllFileInfo() ([]FileInfo, error) {
+	files := make([]FileInfo, 0)
 
 	err := fs.WalkDir(fd.f, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -114,7 +104,12 @@ func (fd *Fdup) getAllFilePath() ([]string, error) {
 			return nil
 		}
 
-		files = append(files, path)
+		finfo, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		files = append(files, FileInfo{Name: finfo.Name(), FullPath: path, Size: finfo.Size()})
 
 		return nil
 	})
