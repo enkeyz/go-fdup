@@ -10,13 +10,11 @@ import (
 )
 
 type HashedFileInfo struct {
-	Name string
 	Path string
-	Size int64
 	Hash uint32
 }
 
-type HashedFileMap map[uint32][]*HashedFileInfo
+type HashedFileMap map[uint32][]HashedFileInfo
 
 type Fdup struct {
 	f      fs.FS
@@ -54,15 +52,9 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 }
 
 func (fd *Fdup) search(filePaths []string) (HashedFileMap, error) {
-	fmap := make(map[uint32][]*HashedFileInfo)
+	fsmap := make(map[int64][]string)
 	for _, filePath := range filePaths {
 		file, err := fd.f.Open(filePath)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		hash, err := fd.hasher.Hash(file)
 		if err != nil {
 			return nil, err
 		}
@@ -72,10 +64,33 @@ func (fd *Fdup) search(filePaths []string) (HashedFileMap, error) {
 			return nil, err
 		}
 
-		fmap[hash] = append(fmap[hash], &HashedFileInfo{fInfo.Name(), filePath, fInfo.Size(), hash})
+		fsmap[fInfo.Size()] = append(fsmap[fInfo.Size()], filePath)
+		file.Close()
 	}
 
-	return fmap, nil
+	hfmap := make(map[uint32][]HashedFileInfo)
+	for _, files := range fsmap {
+		if len(files) <= 1 {
+			continue
+		}
+
+		for _, filePath := range files {
+			file, err := fd.f.Open(filePath)
+			if err != nil {
+				return nil, err
+			}
+
+			hash, err := fd.hasher.Hash(file)
+			if err != nil {
+				continue
+			}
+
+			hfmap[hash] = append(hfmap[hash], HashedFileInfo{Path: filePath, Hash: hash})
+			file.Close()
+		}
+	}
+
+	return hfmap, nil
 }
 
 // check if there are more then one file with the same hash in the whole map
