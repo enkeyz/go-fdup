@@ -91,7 +91,7 @@ func (fd *Fdup) search(filePaths []string) (HashedFileMap, error) {
 	return hfmap, nil
 }
 
-// check if there are more then one file with the same hash in the whole map
+// check if there are more then one file with the same hash in the map
 func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 	for _, slice := range hashedFileMap {
 		if len(slice) > 1 {
@@ -102,15 +102,16 @@ func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 	return false
 }
 
+// get all file paths in the given directory by the user
 func (fd *Fdup) getAllFilePath() ([]string, error) {
 	files := []string{}
 
-	fs.WalkDir(fd.f, ".", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(fd.f, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return nil
+			return err
 		}
 
-		if d.IsDir() {
+		if d.IsDir() && d.Type() == fs.ModeSymlink {
 			return nil
 		}
 
@@ -119,5 +120,5 @@ func (fd *Fdup) getAllFilePath() ([]string, error) {
 		return nil
 	})
 
-	return files, nil
+	return files, err
 }
