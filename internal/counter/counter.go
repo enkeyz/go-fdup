@@ -10,7 +10,7 @@ type Counter struct {
 	logFunc func(value int64)
 }
 
-// creating a counter, and calling fn after after increase of the counter
+// creating a counter, and calling fn after every increase of the counter
 func NewCounter(fn func(value int64)) Counter {
 	return Counter{
 		logFunc: fn,

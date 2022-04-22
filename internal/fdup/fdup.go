@@ -29,9 +29,7 @@ func NewFdup(f fs.FS) *Fdup {
 		f,
 		hash.NewCrc32Hasher(),
 		counter.NewCounter(
-			func(value int64) {
-				fmt.Printf("\rIndexing files: %d", value)
-			},
+			func(value int64) { fmt.Printf("\rIndexing files: %d", value) },
 		),
 	}
 }
