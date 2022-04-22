@@ -119,6 +119,10 @@ func (fd *Fdup) getAllFileInfo() ([]FileInfo, error) {
 			return err
 		}
 
+		if finfo.Size() == 0 {
+			return nil
+		}
+
 		fd.fileCounter.Increase()
 		files = append(files, FileInfo{Name: finfo.Name(), FullPath: path, Size: finfo.Size()})
 
