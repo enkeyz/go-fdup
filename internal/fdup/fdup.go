@@ -78,12 +78,12 @@ func (fd *Fdup) search(fileInfos []FileInfo) (HashedFileMap, error) {
 
 			// TODO only hash when the first x bytes are equal
 			hash, err := fd.hasher.Hash(file)
+			file.Close()
 			if err != nil {
 				continue
 			}
 
 			hfmap[hash] = append(hfmap[hash], fileInfo)
-			file.Close()
 		}
 	}
 
