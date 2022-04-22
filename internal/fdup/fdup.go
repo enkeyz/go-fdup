@@ -2,8 +2,10 @@ package fdup
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 
+	"github.com/enkeyz/go-fdup/internal/counter"
 	"github.com/enkeyz/go-fdup/internal/hash"
 )
 
@@ -16,8 +18,9 @@ type FileInfo struct {
 type HashedFileMap map[uint32][]FileInfo
 
 type Fdup struct {
-	f      fs.FS
-	hasher *hash.Crc32Hasher
+	fileSystem  fs.FS
+	hasher      *hash.Crc32Hasher
+	fileCounter counter.Counter
 }
 
 // creating a new instance of fdup to use to find duplicate files
@@ -25,6 +28,11 @@ func NewFdup(f fs.FS) *Fdup {
 	return &Fdup{
 		f,
 		hash.NewCrc32Hasher(),
+		counter.NewCounter(
+			func(value int64) {
+				fmt.Printf("\rIndexing files: %d", value)
+			},
+		),
 	}
 }
 
@@ -39,6 +47,7 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 		return nil, errors.New("no file found")
 	}
 
+	fmt.Println("\nSearching duplicates")
 	fmap, err := fd.search(fileInfos)
 	if err != nil {
 		return nil, err
@@ -64,7 +73,7 @@ func (fd *Fdup) search(fileInfos []FileInfo) (HashedFileMap, error) {
 		}
 
 		for _, fileInfo := range fileInfos {
-			file, err := fd.f.Open(fileInfo.FullPath)
+			file, err := fd.fileSystem.Open(fileInfo.FullPath)
 			if err != nil {
 				return nil, err
 			}
@@ -98,7 +107,7 @@ func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 func (fd *Fdup) getAllFileInfo() ([]FileInfo, error) {
 	files := make([]FileInfo, 0)
 
-	err := fs.WalkDir(fd.f, ".", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(fd.fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -112,6 +121,7 @@ func (fd *Fdup) getAllFileInfo() ([]FileInfo, error) {
 			return err
 		}
 
+		fd.fileCounter.Increase()
 		files = append(files, FileInfo{Name: finfo.Name(), FullPath: path, Size: finfo.Size()})
 
 		return nil

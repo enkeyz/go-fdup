@@ -6,6 +6,7 @@ import (
 )
 
 func PrintResult(w io.Writer, hashedFileMap HashedFileMap) {
+	fmt.Fprintln(w)
 	for hash, fileInfoSlice := range hashedFileMap {
 		if len(fileInfoSlice) == 1 {
 			continue
