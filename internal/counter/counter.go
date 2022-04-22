@@ -15,7 +15,7 @@ func NewCounter(fn func(value uint64)) Counter {
 }
 
 func (c *Counter) Value() uint64 {
-	return c.value
+	return atomic.LoadUint64(&c.value)
 }
 
 func (c *Counter) Increase() {
