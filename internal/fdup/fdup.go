@@ -18,9 +18,8 @@ type FileInfo struct {
 type HashedFileMap map[uint32][]FileInfo
 
 type Fdup struct {
-	fileSystem  fs.FS
-	hasher      *hash.Crc32Hasher
-	fileCounter counter.Counter
+	fileSystem fs.FS
+	hasher     *hash.Crc32Hasher
 }
 
 // creating a new instance of fdup to use to find duplicate files
@@ -28,9 +27,6 @@ func NewFdup(f fs.FS) *Fdup {
 	return &Fdup{
 		f,
 		hash.NewCrc32Hasher(),
-		counter.NewCounter(
-			func(value uint64) { fmt.Printf("\rIndexing files: %d", value) },
-		),
 	}
 }
 
@@ -41,11 +37,13 @@ func (fd *Fdup) Search() (HashedFileMap, error) {
 		return nil, err
 	}
 
+	// TODO fix this
+	fmt.Println()
+
 	if len(fileInfos) == 0 {
 		return nil, errors.New("no file found")
 	}
 
-	fmt.Println("\nSearching duplicates")
 	fmap, err := fd.search(fileInfos)
 	if err != nil {
 		return nil, err
@@ -64,6 +62,7 @@ func (fd *Fdup) search(fileInfos []FileInfo) (HashedFileMap, error) {
 		fsmap[fileInfo.Size] = append(fsmap[fileInfo.Size], fileInfo)
 	}
 
+	counter := counter.New("Hashing files")
 	hfmap := make(map[uint32][]FileInfo)
 	for _, fileInfos := range fsmap {
 		if len(fileInfos) <= 1 {
@@ -71,6 +70,8 @@ func (fd *Fdup) search(fileInfos []FileInfo) (HashedFileMap, error) {
 		}
 
 		for _, fileInfo := range fileInfos {
+			counter.Increase()
+
 			file, err := fd.fileSystem.Open(fileInfo.FullPath)
 			if err != nil {
 				return nil, err
@@ -103,6 +104,7 @@ func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 
 // get all files in the given directory by the user
 func (fd *Fdup) getAllFileInfo() ([]FileInfo, error) {
+	counter := counter.New("Indexing files")
 	files := make([]FileInfo, 0)
 
 	err := fs.WalkDir(fd.fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
@@ -123,7 +125,8 @@ func (fd *Fdup) getAllFileInfo() ([]FileInfo, error) {
 			return nil
 		}
 
-		fd.fileCounter.Increase()
+		counter.Increase()
+
 		files = append(files, FileInfo{Name: finfo.Name(), FullPath: path, Size: finfo.Size()})
 
 		return nil

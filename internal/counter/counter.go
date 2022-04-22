@@ -1,16 +1,19 @@
 package counter
 
-import "sync/atomic"
+import (
+	"fmt"
+	"sync/atomic"
+)
 
 type Counter struct {
-	value   uint64
-	logFunc func(value uint64)
+	value uint64
+	msg   string
 }
 
 // creating a counter, and calling fn after every increase of the counter
-func NewCounter(fn func(value uint64)) Counter {
+func New(msg string) Counter {
 	return Counter{
-		logFunc: fn,
+		msg: msg,
 	}
 }
 
@@ -20,5 +23,9 @@ func (c *Counter) Value() uint64 {
 
 func (c *Counter) Increase() {
 	atomic.AddUint64(&c.value, 1)
-	c.logFunc(c.value)
+	c.logValue()
+}
+
+func (c *Counter) logValue() {
+	fmt.Printf("\r%s: %d", c.msg, c.Value())
 }
