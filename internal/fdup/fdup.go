@@ -20,6 +20,7 @@ type Fdup struct {
 	hasher *hash.Crc32Hasher
 }
 
+// creating a new instance of fdup to use to find duplicate files
 func NewFdup(f fs.FS) *Fdup {
 	return &Fdup{
 		f,
@@ -27,6 +28,7 @@ func NewFdup(f fs.FS) *Fdup {
 	}
 }
 
+// the main method to search for files
 func (fd *Fdup) Search() (HashedFileMap, error) {
 	fileInfos, err := fd.getAllFileInfo()
 	if err != nil {
@@ -67,6 +69,7 @@ func (fd *Fdup) search(fileInfos []FileInfo) (HashedFileMap, error) {
 				return nil, err
 			}
 
+			// TODO only hash when the first x bytes are equal
 			hash, err := fd.hasher.Hash(file)
 			if err != nil {
 				continue
@@ -91,7 +94,7 @@ func (fd *Fdup) duplicatesExists(hashedFileMap HashedFileMap) bool {
 	return false
 }
 
-// get all file paths in the given directory by the user
+// get all files in the given directory by the user
 func (fd *Fdup) getAllFileInfo() ([]FileInfo, error) {
 	files := make([]FileInfo, 0)
 

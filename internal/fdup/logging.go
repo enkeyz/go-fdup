@@ -13,7 +13,7 @@ func PrintResult(w io.Writer, hashedFileMap HashedFileMap) {
 
 		fmt.Fprintf(w, "Hash: %d\n", hash)
 		for _, fileInfo := range fileInfoSlice {
-			fmt.Fprintf(w, "\tfile: %s, size:%d byte\n", fileInfo.FullPath, fileInfo.Size)
+			fmt.Fprintf(w, "\t%s, size: %d byte\n", fileInfo.FullPath, fileInfo.Size)
 		}
 	}
 }

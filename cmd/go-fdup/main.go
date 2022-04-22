@@ -4,22 +4,15 @@ import (
 	"flag"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/enkeyz/go-fdup/internal/fdup"
 )
 
 func main() {
-	dir := flag.String("d", ".", "directory")
+	dir := flag.String("d", ".", "full path to the directory")
 	flag.Parse()
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	dirPath := filepath.Join(cwd, *dir)
-	fi, err := os.Stat(dirPath)
+	fi, err := os.Stat(*dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,7 +20,7 @@ func main() {
 		log.Fatalf("%s is not a directory", *dir)
 	}
 
-	f := os.DirFS(dirPath)
+	f := os.DirFS(*dir)
 	fd := fdup.NewFdup(f)
 
 	res, err := fd.Search()
